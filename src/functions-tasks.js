@@ -18,7 +18,7 @@
  *
  */
 function getCurrentFunctionName() {
-  throw new Error('Not implemented');
+  return getCurrentFunctionName.name;
 }
 
 /**
@@ -32,8 +32,8 @@ function getCurrentFunctionName() {
  *   getFunctionBody(hiHello) => "function hiHello() { console.log('hello world'); }"
  *
  */
-function getFunctionBody(/* func */) {
-  throw new Error('Not implemented');
+function getFunctionBody(func) {
+  return func?.toString() || '';
 }
 
 /**
@@ -50,8 +50,8 @@ function getFunctionBody(/* func */) {
  *  ]) => [0, 1, 2]
  *
  */
-function getArgumentsCount(/* funcs */) {
-  throw new Error('Not implemented');
+function getArgumentsCount(funcs) {
+  return funcs.map((f) => f.length);
 }
 
 /**
@@ -70,8 +70,8 @@ function getArgumentsCount(/* funcs */) {
  *   power05(16) => 4
  *
  */
-function getPowerFunction(/* exponent */) {
-  throw new Error('Not implemented');
+function getPowerFunction(exponent) {
+  return (x) => x ** exponent;
 }
 
 /**
@@ -87,8 +87,17 @@ function getPowerFunction(/* exponent */) {
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-function getPolynom() {
-  throw new Error('Not implemented');
+function getPolynom(...a) {
+  switch (a.length) {
+    case 3:
+      return (x) => x ** 2 * a[0] + x * a[1] + a[2];
+    case 2:
+      return (x) => x * a[0] + a[1];
+    case 1:
+      return () => a[0];
+    default:
+      return null;
+  }
 }
 
 /**
@@ -105,8 +114,17 @@ function getPolynom() {
  *   ...
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
+function memoize(func) {
+  return (() => {
+    const mp = new Map();
+
+    return (...args) => {
+      const key = args.toString();
+      if (mp.has(key)) return mp.get(key);
+      mp.set(key, func(...args));
+      return mp.get(key);
+    };
+  })();
 }
 
 /**
@@ -124,8 +142,19 @@ function memoize(/* func */) {
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+function retry(func, attempts) {
+  let curAttempts = attempts + 1;
+
+  return () => {
+    while (curAttempts > 0) {
+      try {
+        return func();
+      } catch (error) {
+        curAttempts -= 1;
+      }
+    }
+    return null;
+  };
 }
 
 /**
@@ -151,8 +180,17 @@ function retry(/* func, attempts */) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  return (...args) => {
+    const expression = `${func.name}(${args
+      .map((v) => JSON.stringify(v))
+      .join(',')})`;
+
+    logFunc(`${expression} starts`);
+    const result = func(...args);
+    logFunc(`${expression} ends`);
+    return result;
+  };
 }
 
 /**
@@ -168,8 +206,15 @@ function logger(/* func, logFunc */) {
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(/* fn, ...args1 */) {
-  throw new Error('Not implemented');
+
+function nxtCurry(fn, ...args) {
+  if (args.length >= fn.length) return fn(...args);
+  return (...rest) => nxtCurry(fn, ...args, ...rest);
+}
+
+function partialUsingArguments(fn, ...args) {
+  if (args.length >= fn.length) return () => fn(...args);
+  return nxtCurry(fn, ...args);
 }
 
 /**
@@ -189,8 +234,12 @@ function partialUsingArguments(/* fn, ...args1 */) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let i = startFrom - 1;
+  return () => {
+    i += 1;
+    return i;
+  };
 }
 
 module.exports = {
@@ -202,6 +251,6 @@ module.exports = {
   memoize,
   retry,
   logger,
-  partialUsingArguments,
   getIdGeneratorFunction,
+  partialUsingArguments,
 };
